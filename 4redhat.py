@@ -6,27 +6,46 @@ import os.path
 
 class fetched:
 
+    def __init__(self, line, regex, filename): 
+        self.line_str = line
+        self.regex_found = regex.string
+	self.regex_start = regex.span()[0] + 1 
+	self.filename = filename
+        
+        print 'Regex Found: ', self.regex_found
+        # print 'self.line_str: ', self.line_str
+        # print 'self.line_str = line ', line
+        print 'Filename: ', filename
+
     # Define color blue for matched pattern. 
     # An alternative is to use the termcolor module, see: 
     # https://stackoverflow.com/questions/22886353/printing-colors-in-python-terminal
     OKBLUE = '\033[94m'
     ENDC = '\033[0m'
 
-    line = 'Meir' 
+    def print_plain(self): 
+        to_print = self.filename + ':' + self.line_str
+	print to_print 
+
     def colored(self):
-        # self.line = self.OKBLUE + 'Meir' + self.ENDC
-        to_print = self.OKBLUE + self.line + self.ENDC
+        to_print = self.OKBLUE + self.line_str + self.ENDC
         print to_print
 
     def underscore(self):
-        print 'Within underscore ' + self.line
-        print ' ' * 10 + '^' * len(self.line)
+        print self.line_str
+        print ' ' * 10 + '^' * len(self.line_str)
 
     def machine_readable(self): 
         # Print following format: file_name:no_line:start_pos:matched_text
-        print 'Within Machine readable ' + self.line
+	# start_pos is the column number in the file. Assuming first column is column 1. 
 
-def grep_it(regex, file_list, color=False, underscore=False, machine=False):
+        # to_print = self.filename + ':' + 'no_line_TBD' + ':' + 'start_pos_TBD' + ':' + self.regex_found
+        # to_print = self.filename + ':' + self.regex_found
+        to_print = str(self.regex_start) + ':' + self.regex_found
+	print to_print
+
+
+def grep_it(regex, file_list, color=False, underscore=False, machine_format=False):
     '''
     str: regex
     list: file_list
@@ -37,11 +56,13 @@ def grep_it(regex, file_list, color=False, underscore=False, machine=False):
         for line in fh: 
             if re.search(regex, line):
                 print 'Matched at line: ', str(line_n) + ':' + line.strip()
-                line_found = fetched() 
-                line_found.colored() 
 
-                line_found.underscore()
-                line_found.machine_readable()
+                # 
+                line_found = fetched(line, re.search(regex, line), f)
+                if color: line_found.colored() 
+                elif underscore: line_found.underscore()
+                elif machine_format: line_found.machine_readable()
+		else: line_found.print_plain() 
 
             line_n += 1
 
@@ -122,7 +143,8 @@ def main(argv):
         print "Please fix and rerun." 
         #sys.exit(3)
     
-    grep_it(regex, file_list) 
+    grep_it(regex, file_list, color_on, underscore_on, machine_on) 
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
