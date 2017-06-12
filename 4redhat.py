@@ -5,9 +5,14 @@ import getopt
 import os.path 
 
 class fetched:
-    line = 'Meir' 
+
+    # Define color blue for matched pattern. 
+    # An alternative is to use the termcolor module, see: 
+    # https://stackoverflow.com/questions/22886353/printing-colors-in-python-terminal
     OKBLUE = '\033[94m'
     ENDC = '\033[0m'
+
+    line = 'Meir' 
     def colored(self):
         # self.line = self.OKBLUE + 'Meir' + self.ENDC
         to_print = self.OKBLUE + self.line + self.ENDC
@@ -30,7 +35,7 @@ def grep_it(regex, file_list, color=False, underscore=False, machine=False):
         fh = open(f, 'r')
         line_n = 1
         for line in fh: 
-            if re.search(regex, line): 
+            if re.search(regex, line):
                 print 'Matched at line: ', str(line_n) + ':' + line.strip()
                 line_found = fetched() 
                 line_found.colored() 
