@@ -2,6 +2,7 @@
 
 import re, sys
 import getopt
+import os.path 
 
 class fetched:
     line = 'Meir' 
@@ -39,11 +40,28 @@ def grep_it(regex, file_list, color=False, underscore=False, machine=False):
 
             line_n += 1
 
+def check_files(flist):
+    '''
+    Check if file(s) exists and is/are accessible
+    list: flist
+    ''' 
+    flist_valid = [] 
+
+    for f in flist:
+        if os.path.isfile(f): 
+            continue
+        else: 
+            print 'No such file: ', f
+            flist_valid.append(f)
+
+    return flist_valid
+
+
 def main(argv):
     color_on = underscore_on = machine_on = False
-    switches_on = 0
+    switches_on = 0                     # Counter for switches '-c', '-m', & '-u' 
     regex = None
-    file_list = list()
+    file_list = list()                  # To store the list of file(s) given in the command line
 
     # print "ARGV: ", argv
 
@@ -85,7 +103,12 @@ def main(argv):
 
         if opt in ('-f', '--file'):
             # print "opt: ", opt, 'arg', arg
+            # Build a file list from the file(s) specified in the command line
             file_list.append(arg)
+
+            # Check that file(s) exists and we can open it/them
+            if len(file_list) is not 0: 
+                check_files(file_list)
 
     # print "File list:", file_list
 
