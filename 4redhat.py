@@ -6,30 +6,49 @@ import os.path
 
 class fetched:
 
-    def __init__(self, line, regex, filename): 
+    def __init__(self, line, regex, filename, line_n): 
         self.line_str = line
-        self.regex_found = regex.string
-	self.regex_start = regex.span()[0] + 1 
+	self.line_n = line_n
+        #self.regex_found = regex.string
+	#self.regex_start = regex.span()[0] + 1 
+	#self.matched_text = regex.string[regex.span()[0]:regex.span()[1]]
 	self.filename = filename
-        
-        print 'Regex Found: ', self.regex_found
-        # print 'self.line_str: ', self.line_str
-        # print 'self.line_str = line ', line
-        print 'Filename: ', filename
+	self.regex_str = regex
 
-    # Define color blue for matched pattern. 
-    # An alternative is to use the termcolor module, see: 
-    # https://stackoverflow.com/questions/22886353/printing-colors-in-python-terminal
-    OKBLUE = '\033[94m'
-    ENDC = '\033[0m'
 
     def print_plain(self): 
         to_print = self.filename + ':' + self.line_str
 	print to_print 
 
     def colored(self):
+        # to_print = self.OKBLUE + self.line_str + self.ENDC
         to_print = self.OKBLUE + self.line_str + self.ENDC
         print to_print
+   
+
+    # def color_matches_in_line(line, string, index):
+    def color_matches_in_line(self):
+        '''
+        Given a line and a string or regex matching at 'index', 
+        Return a line with colored matches
+        '''
+	line = self.line_str
+	regex_str = self.regex_str
+
+        # Define color blue for matched pattern. 
+        # An alternative is to use the termcolor module, see: 
+        # https://stackoverflow.com/questions/22886353/printing-colors-in-python-terminal
+	FOUND_COLOR = '\033[91m'
+	ENDC = '\033[0m'
+	
+	# print 'Regex: ', regex
+	colored_match = ''
+	colored_line = ''
+	for match in re.findall(regex_str, line):
+	    match_len = len(match)
+	    start_index = re.search(regex_str, line).span()[0] + 1
+	    colored_line = line[:start_index-1] + FOUND_COLOR + match[:len(match)] + ENDC + line[start_index+len(match)-1:]
+	print self.filename + ':' + str(self.line_n) + ':' + colored_line
 
     def underscore(self):
         print self.line_str
@@ -38,10 +57,20 @@ class fetched:
     def machine_readable(self): 
         # Print following format: file_name:no_line:start_pos:matched_text
 	# start_pos is the column number in the file. Assuming first column is column 1. 
+	line = self.line_str
+	regex_str = self.regex_str
+	
+	# print "Type of 'regex' object: ", type(regex_str) 
+	r = re.search(regex_str, line)
+	start_index = r.span()[0] + 1
+	# print 'Start index: ', start_index
+
+	matched_text = line[r.span()[0]:r.span()[1]]
 
         # to_print = self.filename + ':' + 'no_line_TBD' + ':' + 'start_pos_TBD' + ':' + self.regex_found
         # to_print = self.filename + ':' + self.regex_found
-        to_print = str(self.regex_start) + ':' + self.regex_found
+        # to_print = self.filename + ':' + str(self.regex_start) + ':' + self.regex_found
+        to_print = self.filename + ':' + str(self.line_n) + ':' + str(start_index) + ':' + matched_text
 	print to_print
 
 
@@ -55,11 +84,14 @@ def grep_it(regex, file_list, color=False, underscore=False, machine_format=Fals
         line_n = 1
         for line in fh: 
             if re.search(regex, line):
-                print 'Matched at line: ', str(line_n) + ':' + line.strip()
+                # print 'Matched at line: ', str(line_n) + ':' + line.strip()
 
                 # 
-                line_found = fetched(line, re.search(regex, line), f)
-                if color: line_found.colored() 
+                # line_found = fetched(line, re.search(regex, line), f)
+                line_found = fetched(line, regex, f, line_n)
+
+                # if color: line_found.colored() 
+                if color: line_found.color_matches_in_line()
                 elif underscore: line_found.underscore()
                 elif machine_format: line_found.machine_readable()
 		else: line_found.print_plain() 
@@ -141,7 +173,7 @@ def main(argv):
     if switches_on > 1: 
         print "Switches -c, -u and -m are mutually exclusive. Exiting"
         print "Please fix and rerun." 
-        #sys.exit(3)
+        sys.exit(3)
     
     grep_it(regex, file_list, color_on, underscore_on, machine_on) 
 
