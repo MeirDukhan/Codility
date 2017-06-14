@@ -6,6 +6,7 @@ import os.path
 
 class fetched:
 
+
     def __init__(self, line, regex, filename, line_n): 
         self.line_str = line
 	self.line_n = line_n
@@ -15,18 +16,10 @@ class fetched:
 	self.filename = filename
 	self.regex_str = regex
 
-
     def print_plain(self): 
-        to_print = self.filename + ':' + self.line_str
+        to_print = self.filename + ':' + str(self.line_n) + ':' + self.line_str
 	print to_print 
 
-    def colored(self):
-        # to_print = self.OKBLUE + self.line_str + self.ENDC
-        to_print = self.OKBLUE + self.line_str + self.ENDC
-        print to_print
-   
-
-    # def color_matches_in_line(line, string, index):
     def color_matches_in_line(self):
         '''
         Given a line and a string or regex matching at 'index', 
@@ -51,8 +44,44 @@ class fetched:
 	print self.filename + ':' + str(self.line_n) + ':' + colored_line
 
     def underscore(self):
-        print self.line_str
-        print ' ' * 10 + '^' * len(self.line_str)
+        # print self.line_str
+
+	# Build the 'underscore' string for under the matching text
+	# 
+        # print ' ' * len(prefix_to_print) + '^' * len(self.line_str)
+
+	# Find the position(s) of the matche(s) within the line 
+	positions = list() 
+	L = list(re.finditer(self.regex_str, self.line_str)) 
+	for it in re.finditer(self.regex_str, self.line_str):
+	    positions.append(it.span()) 
+
+	# print 'Positions: ', positions
+	# Initialize a list with the size of the line with single blanks 
+	blanks = list([' '] * len(self.line_str)) 
+
+	# Now, put the '^' in the place(s) of the matche(s) 
+	for pos in positions: 
+	    carets_to_put = pos[1] - pos[0] 
+	    start_index_to_put_carets = pos[0]
+	# print 'carets_to_put, start_index_to_put_carets: ', carets_to_put, start_index_to_put_carets
+
+	for i in range(pos[0], pos[1]):
+	    blanks[i] = '^' 
+	i = 0
+	line_with_underscore = ''
+	while i < len(blanks):
+	    line_with_underscore += blanks[i] 
+	    i += 1 
+	
+	prefix_to_print = self.filename + ':' + str(self.line_n) + ':'
+
+	print (prefix_to_print + self.line_str).strip()
+	# print len(blanks), len(line_with_underscore) 
+	# print 'Prefix + Line with underscore: ', prefix_to_print + line_with_underscore 
+	print len(prefix_to_print) * ' ' + line_with_underscore 
+
+
 
     def machine_readable(self): 
         # Print following format: file_name:no_line:start_pos:matched_text
@@ -94,7 +123,9 @@ def grep_it(regex, file_list, color=False, underscore=False, machine_format=Fals
                 if color: line_found.color_matches_in_line()
                 elif underscore: line_found.underscore()
                 elif machine_format: line_found.machine_readable()
-		else: line_found.print_plain() 
+		else: 
+		    # print 'Print format: filename:line_number_for_match:line_matched\n\n' 
+		    line_found.print_plain() 
 
             line_n += 1
 
@@ -141,12 +172,13 @@ def main(argv):
             sys.exit()
 
         if opt in ('-c', '--color'): 
-            print "color switch is ON" 
+            # print "color switch is ON" 
+            print 'Output format: filename:line_number_for_match:line_matched. Matched pattern in red\n\n' 
             color_on = True
             switches_on += 1 
 
         if opt in ('-u', '--underscore'): 
-            print "underscore switch is ON" 
+            # print "underscore switch is ON" 
             underscore_on = True
             switches_on += 1 
 
@@ -169,7 +201,9 @@ def main(argv):
                 check_files(file_list)
 
     # print "File list:", file_list
-
+    if switches_on == 0: 
+        print 'Output format: filename:line_number_for_match:line_matched\n\n' 
+        
     if switches_on > 1: 
         print "Switches -c, -u and -m are mutually exclusive. Exiting"
         print "Please fix and rerun." 
