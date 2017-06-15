@@ -1,7 +1,9 @@
 #!/usr/bin/python 
 
 # RedHat assignment. Given on June 11, afternoon.
-# Reference: Ofer Blaut (Hiring manager), Edita Aharonovich, RedHat
+# 
+# References: Ofer Blaut (Hiring manager), Edita Aharonovich &
+# 	      Itzik Brown, RedHat 
 #
 # Implement a script in Python that searches one or more named input
 # files (standard input if no files are specified, or the file name
@@ -168,11 +170,13 @@ def grep_it(regex, file_list, color=False, underscore=False, machine_format=Fals
                 line_found = MatchedLine(line, regex, f, line_n)
 
                 # if color: line_found.colored() 
-                if color: line_found.color_matches_in_line()
-                elif underscore: line_found.underscore()
-                elif machine_format: line_found.machine_readable()
+                if color: 
+		    line_found.color_matches_in_line()
+                elif underscore: 
+		    line_found.underscore()
+                elif machine_format: 
+		    line_found.machine_readable()
 		else: 
-		    # print 'Print format: filename:line_number_for_match:line_matched\n\n' 
 		    line_found.print_plain() 
 
             line_n += 1
@@ -187,10 +191,9 @@ def check_files(flist):
 
     for f in flist:
         if os.path.isfile(f): 
-            continue
-        else: 
-            print 'No such file: ', f
             flist_valid.append(f)
+        else: 
+            print 'Error: No such file: ', f
 
     return flist_valid
 
@@ -198,24 +201,21 @@ def usage():
     print 'Usage: 4redhat.py \n' \
 	'     -h, --help,         Print this help message\n' \
 	'     -c, --color,        Highlight matching text\n' \
-	'     -u, --underscore,   Print "^" under the matching text\n' \
-	'     -m, --machine       Print in machine format: file_name:no_line:start_pos:matched_text\n'
+	'     -f, --file          file name to search the regex. Can be speficied multiple times\n' \
+	'     -m, --machine       Print in machine format: file_name:no_line:start_pos:matched_text\n' \
+	'     -u, --underscore,   Print "^" under the matching text\n' 
 
 def main(argv):
     color_on = underscore_on = machine_on = False
     switches_on = 0                     # Counter for switches '-c', '-m', & '-u' 
     regex = None
-    file_list = list()                  # To store the list of file(s) given in the command line
-
-    # print "ARGV: ", argv
+    given_file_list = list()            # To store the list of file(s) given in the command line
 
     try:
         opts, args = getopt.getopt(argv, "hcumr:f:", ["help", "color", "underscore", "machine", "regex=", "file="])
     except getopt.GetoptError:
 	usage()
         sys.exit(2)
-
-    # print 'OPTS: ', opts 
 
     for opt, arg in opts: 
         if opt == '-h':
@@ -224,7 +224,6 @@ def main(argv):
 
         if opt in ('-c', '--color'): 
             # print "color switch is ON" 
-            print 'Output format: filename:line_number_for_match:line_matched. Matched pattern in red\n\n' 
             color_on = True
             switches_on += 1 
 
@@ -234,8 +233,6 @@ def main(argv):
             switches_on += 1 
 
         if opt in ('-m', '--machine'):
-            print "Generate machine readable output"
-            print "\tfile_name:no_line:start_pos:matched_text\n"
             machine_on = True
             switches_on += 1 
         
@@ -246,22 +243,24 @@ def main(argv):
         if opt in ('-f', '--file'):
             # print "opt: ", opt, 'arg', arg
             # Build a file list from the file(s) specified in the command line
-            file_list.append(arg)
+            given_file_list.append(arg)
 
-            # Check that file(s) exists and we can open it/them
-            if len(file_list) is not 0: 
-                check_files(file_list)
-
-    # print "File list:", file_list
-    if switches_on == 0: 
-        print 'Output format: filename:line_number_for_match:line_matched\n' 
-        
+    # If more than one option (-c, -u or -m) are speficied, exit with error message and error code. 
     if switches_on > 1: 
         print "Switches -c, -u and -m are mutually exclusive. Exiting"
         print "Please fix and rerun." 
         sys.exit(3)
+
+    # From the specified files list, get a valid list of files which exist and are openable. 
+    if len(given_file_list) is not 0: 
+        valid_file_list = check_files(given_file_list)
+
+    # If no format output specified, give a standard output
+    if switches_on == 0: 
+        print 'Output format: filename:line_number_for_match:line_matched\n' 
     
-    grep_it(regex, file_list, color_on, underscore_on, machine_on) 
+    if len(valid_file_list) > 0: 
+        grep_it(regex, valid_file_list, color_on, underscore_on, machine_on) 
 
 
 if __name__ == '__main__':
