@@ -1,0 +1,78 @@
+
+
+def solution(N):
+    # 
+	# A binary gap within a positive integer N is any maximal sequence of consecutive 
+	# zeros that is surrounded by ones at both ends in the binary representation of N.
+	# 
+	# The number 20 has binary representation 10100 and contains one binary gap of length 1.
+	# 
+	# Bug in my solution: return 2 for 20 (10100) instead of 1. 
+	# Cause: missing a surrounding 1 at the end. 
+    
+    # Check that N is in valid range
+    try: 
+        if N < 1 or N > 2147483647: return 0
+    except: pass
+    
+    # Convert N to a list of 0 and 1 
+    # Ex: 1041 is binary 10000010001, 
+    #     is converted to [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1]
+    bin_l = [int(x) for x in bin(N)[2:] ]
+    consecutive_0 = 0
+    max_consecutive_0 = 0
+    for i in bin_l:
+        if i == 1:
+            # Start again to count consecutive 0
+            max_consecutive_0 = max(consecutive_0, max_consecutive_0)
+            consecutive_0 = 0
+            continue
+        else: consecutive_0 += 1
+    
+    return max(max_consecutive_0, consecutive_0)
+
+def cyclique(A, K):
+	len_A = len(A)
+    # Reassign K to the actual number of cycle to do
+	K = K % len_A
+	while K is not 0:
+		# print "Moving element: ", A[len(A) - 1]
+		A.insert(0, A[len_A - 1])
+		A.pop()
+		K = K - 1
+
+	return A
+
+# PermMissingElem
+# Find the missing element in a given permutation.
+
+def solution(A): 
+	if len(A) is 0: return 1
+	
+	B = [i for i in range(1, len(A) + 2)]
+	As = set(A) 
+	Bs = set(B) 
+	missing_set = Bs.difference(As) 
+	
+	
+	return list(missing_set)[0]
+	
+# MissingInteger
+# Find the minimal positive integer not occurring in a given sequence.
+def MissingMinInteger(A): 
+	if len(A) is 0: return 1
+	
+	B = [i for i in range(1, len(A) + 2)]
+	
+	As = set(A) 
+	Bs = set(B) 
+	missing_set = Bs.difference(As) 
+	
+	minimal_int = min(missing_set) 
+	
+	return minimal_int
+	
+	
+	
+
+	
